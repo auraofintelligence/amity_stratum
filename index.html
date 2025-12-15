@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Amity Archives: Subterranean Blueprint</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Plotly.js -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <!-- Chosen Palette: "Sand & Circuitry" -->
+    <!-- Primary: #F5F5DC (Beige/Sand) - Representing the Island -->
+    <!-- Secondary: #2C3E50 (Deep Slate) - Representing the Subterranean/Abyss -->
+    <!-- Accent: #D4AF37 (Metallic Gold/Rutile) & #00CED1 (Bio-Luminescence/Cyan) -->
+
+    <style>
+        :root {
+            --sand-bg: #F9F7F2;
+            --sand-dark: #E6E2D3;
+            --deep-slate: #1a202c;
+            --rutile-gold: #b49b57;
+            --tech-cyan: #06b6d4;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--sand-bg);
+            color: var(--deep-slate);
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        /* CHART CONTAINER STYLING - MANDATORY */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 300px;
+            }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #aaa;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-active {
+            border-bottom: 2px solid var(--rutile-gold);
+            color: #000;
+            font-weight: 600;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+    
+    <!-- Application Structure Plan: 
+         The app is structured as a "Visionary Archive" hosted by a local resident.
+         1. Header: Contextualizes the project as a thought experiment from Amity.
+         2. Manifesto: The core philosophy (Civilisation of Sand).
+         3. The Molecular Anvil (Manufacturing): The core interactive element allowing users to 'design' products using local materials (Addendum focus).
+         4. Resource Metabolism: Visualizing the closed-loop flows.
+         5. Infrastructure & TBM: Addressing the lateral mining and sandworm concepts.
+         6. Lifestyle & Bio-Integration: Cookware, health, and permaculture.
+         7. Kardashev Tracker: Long-term resilience goals.
+    -->
+    
+    <!-- Visualization & Content Choices:
+         - Manufacturing: Radar Charts to compare material properties (Customization vs Mass Production).
+         - Resources: Sankey-style (via Plotly) or Doughnut charts to show material provenance.
+         - Infrastructure: Interactive TBM capability graph.
+         - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 glass-panel border-b border-stone-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <span class="text-2xl font-bold tracking-tight text-stone-800">AMITY<span class="text-yellow-600">ARCHIVES</span></span>
+                    <span class="hidden md:block ml-4 text-xs uppercase tracking-widest text-stone-500 border-l border-stone-300 pl-4">Project: Silica Citadel (Concept Phase)</span>
+                </div>
+                <div class="flex space-x-8 items-center overflow-x-auto">
+                    <button onclick="nav('manifesto')" id="btn-manifesto" class="nav-item nav-active px-3 py-2 text-sm font-medium transition-colors hover:text-yellow-700">Vision</button>
+                    <button onclick="nav('manufacturing')" id="btn-manufacturing" class="nav-item px-3 py-2 text-sm font-medium transition-colors hover:text-yellow-700">Fabrication</button>
+                    <button onclick="nav('resources')" id="btn-resources" class="nav-item px-3 py-2 text-sm font-medium transition-colors hover:text-yellow-700">Resources</button>
+                    <button onclick="nav('infrastructure')" id="btn-infrastructure" class="nav-item px-3 py-2 text-sm font-medium transition-colors hover:text-yellow-700">Infrastructure</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+
+        <!-- SECTION 1: MANIFESTO / VISION -->
+        <section id="manifesto" class="space-y-8 fade-in block">
+            <div class="bg-white rounded-2xl p-8 shadow-sm border border-stone-100">
+                <div class="max-w-3xl">
+                    <h1 class="text-4xl md:text-5xl font-bold text-stone-900 mb-6">The Civilisation of Sand: A Thought Experiment</h1>
+                    <p class="text-lg text-stone-600 leading-relaxed mb-4">
+                        This is not a city that exists. It is a vision born from the quiet shores of Amity, a fishing village of 200 souls on North Stradbroke Island (Minjerribah).
+                    </p>
+                    <p class="text-lg text-stone-600 leading-relaxed mb-6">
+                        Facing a future of broken supply chains and planetary volatility, we propose a radical shift: <strong>Total Material Sovereignty.</strong> We stop exporting our sand. Instead, we use the island's atomic inventory—Silica, Titanium, Zircon, and waste—to build a subterranean civilization that requires <em>nothing</em> from the outside world.
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+                        <div class="p-4 bg-stone-50 rounded-xl border-l-4 border-yellow-500">
+                            <h3 class="font-bold text-stone-800">No Exports</h3>
+                            <p class="text-sm text-stone-600 mt-2">Everything mined or grown is for the local population, visitors, and the regeneration of the environment.</p>
+                        </div>
+                        <div class="p-4 bg-stone-50 rounded-xl border-l-4 border-cyan-500">
+                            <h3 class="font-bold text-stone-800">Small Batch Innovation</h3>
+                            <p class="text-sm text-stone-600 mt-2">No mass production lines. We use AI and robotics for custom, on-demand fabrication of high-variety goods.</p>
+                        </div>
+                        <div class="p-4 bg-stone-50 rounded-xl border-l-4 border-stone-700">
+                            <h3 class="font-bold text-stone-800">Deep Time</h3>
+                            <p class="text-sm text-stone-600 mt-2">Building for multigenerational resilience, aiming for Kardashev Type I status through local energy mastery.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kardashev Progress Tracker -->
+            <div class="bg-stone-900 text-white rounded-2xl p-8 shadow-lg">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold">Kardashev Scale Aspiration</h2>
+                        <p class="text-stone-400 text-sm">Target: Mastery of Local Planetary Energy</p>
+                    </div>
+                    <div class="text-right mt-4 md:mt-0">
+                        <div class="text-4xl font-mono font-bold text-cyan-400">Type 0.73</div>
+                        <div class="text-xs text-stone-500 uppercase">Current Estimated Status</div>
+                    </div>
+                </div>
+                
+                <div class="chart-container" style="height: 250px;">
+                    <canvas id="kardashevChart"></canvas>
+                </div>
+                <p class="text-center text-xs text-stone-500 mt-4">Projection based on Wave Energy capture and Geothermal integration.</p>
+            </div>
+        </section>
+
+        <!-- SECTION 2: MANUFACTURING (The Molecular Anvil) -->
+        <section id="manufacturing" class="space-y-8 fade-in hidden">
+            <div class="bg-white rounded-2xl p-8 shadow-sm border border-stone-100">
+                <h2 class="text-3xl font-bold text-stone-900 mb-4">The Molecular Anvil: Local Advanced Manufacturing</h2>
+                <p class="text-stone-600 mb-8 max-w-3xl">
+                    In the subterranean city, we do not have factories in the 20th-century sense. We have **Fabrication Nodes**. Because we do not export, we do not need to make 10,000 identical items. We make exactly what is needed, when it is needed, using the materials at hand (Sand, Waste, Bio-matter). This allows for rapid iteration and extreme customization.
+                </p>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Configurator Panel -->
+                    <div class="bg-stone-50 p-6 rounded-xl border border-stone-200">
+                        <h3 class="text-xl font-bold mb-4 flex items-center">
+                            <span class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
+                            Fabrication Request Node
+                        </h3>
+                        
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-sm font-medium text-stone-700 mb-2">Item Category</label>
+                                <select id="item-selector" class="w-full p-3 rounded-lg border border-stone-300 bg-white focus:ring-2 focus:ring-yellow-500 outline-none" onchange="updateFabricator()">
+                                    <option value="cookware">Cookware (Skillet/Pot)</option>
+                                    <option value="optics">Optical Component (Lens/Window)</option>
+                                    <option value="utensils">Eating Utensils</option>
+                                    <option value="structural">Structural Beam</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-stone-700 mb-2">Material Source</label>
+                                <div class="grid grid-cols-2 gap-2" id="material-buttons">
+                                    <!-- Populated by JS -->
+                                </div>
+                            </div>
+
+                            <div class="p-4 bg-white rounded-lg border border-stone-200 shadow-inner">
+                                <h4 class="text-sm font-bold text-stone-500 uppercase tracking-wide mb-2">Fabrication Specs</h4>
+                                <ul id="specs-list" class="space-y-2 text-sm text-stone-800">
+                                    <!-- Populated by JS -->
+                                </ul>
+                            </div>
+                            
+                            <div class="p-3 bg-blue-50 text-blue-800 text-xs rounded border border-blue-100">
+                                <strong>AI Co-Evolution:</strong> The design has been optimized by local AI (GNOME) to reduce material waste by 14% based on current island stockpiles.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Visualization Panel -->
+                    <div class="bg-white p-6 rounded-xl border border-stone-200 flex flex-col">
+                        <h3 class="text-lg font-bold mb-4 text-center">Performance Radar</h3>
+                        <div class="chart-container flex-grow">
+                            <div id="radarChart"></div>
+                        </div>
+                        <p class="text-xs text-center text-stone-500 mt-2">Comparing local sovereign materials against imported legacy standards.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Homewares & Lifestyle Integration -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100">
+                    <div class="text-2xl mb-2">🍳</div>
+                    <h3 class="font-bold text-lg mb-2">Induction & Cast Iron</h3>
+                    <p class="text-sm text-stone-600">
+                        High-efficiency induction cooktops made from local <strong>ALON (Transparent Aluminum)</strong> ceramics. Cookware forged from scavenged island steel, refined into heirloom-quality cast iron.
+                    </p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100">
+                    <div class="text-2xl mb-2">🥄</div>
+                    <h3 class="font-bold text-lg mb-2">Silicone & Bio-Ware</h3>
+                    <p class="text-sm text-stone-600">
+                        Sand is Silica. Silica becomes <strong>Silicone</strong>. Soft-touch utensils, baking mats, and seals are synthesized locally. Plates are grown from <strong>mycelium</strong> or sintered form mineral sands.
+                    </p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100">
+                    <div class="text-2xl mb-2">♻️</div>
+                    <h3 class="font-bold text-lg mb-2">The Closed Loop</h3>
+                    <p class="text-sm text-stone-600">
+                        Nothing is thrown away. A broken plate is crushed back into aggregate. Old tools are melted in the plasma arc. The home is a node in the island's metabolism.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: RESOURCES (The Metabolism) -->
+        <section id="resources" class="space-y-8 fade-in hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Text Content -->
+                <div class="lg:col-span-1 space-y-6">
+                    <h2 class="text-3xl font-bold text-stone-900">Resource Sovereignty</h2>
+                    <p class="text-stone-600">
+                        The "Addendum" creates a strict rule: <strong>Import Knowledge, Export Nothing.</strong> We rely entirely on the geological wealth of Minjerribah and the "Anthropogenic Ore Body" (waste) we have accumulated.
+                    </p>
+                    
+                    <div class="space-y-4">
+                        <div class="border-l-2 border-yellow-500 pl-4">
+                            <h4 class="font-bold text-stone-800">The Mineral Sands</h4>
+                            <p class="text-sm text-stone-600">Rutile (Titanium), Zircon (Ceramics), Silica (Glass/Chips), Ilmenite (Structures).</p>
+                        </div>
+                        <div class="border-l-2 border-red-500 pl-4">
+                            <h4 class="font-bold text-stone-800">The Anthropogenic Mine</h4>
+                            <p class="text-sm text-stone-600">Landfill mining provides Aluminum (cans), Steel (car bodies), and Carbon (plastics/polymers).</p>
+                        </div>
+                        <div class="border-l-2 border-green-500 pl-4">
+                            <h4 class="font-bold text-stone-800">Bio-Integration</h4>
+                            <p class="text-sm text-stone-600">Oyster-crete, Mycelium insulation, Algae biofuels.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chart -->
+                <div class="lg:col-span-2 bg-white rounded-2xl p-6 shadow-sm border border-stone-100">
+                    <h3 class="text-lg font-bold mb-4">Material Inventory & Application</h3>
+                    <div class="chart-container">
+                        <canvas id="resourceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Energy Grid -->
+            <div class="bg-stone-900 text-stone-100 rounded-2xl p-8">
+                <h3 class="text-2xl font-bold mb-6">Energy Architecture</h3>
+                <p class="text-stone-400 mb-6 max-w-2xl">
+                    Powering the subterranean city requires a diverse mix. Wave energy provides the baseload, solar charges the "Sand Batteries" (thermal storage), and piezoelectric roads harvest kinetic energy.
+                </p>
+                <div class="chart-container">
+                    <div id="energyChart"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: INFRASTRUCTURE (The Worm & The Wall) -->
+        <section id="infrastructure" class="space-y-8 fade-in hidden">
+            <div class="bg-white rounded-2xl p-8 shadow-sm border border-stone-100">
+                <h2 class="text-3xl font-bold text-stone-900 mb-6">The Subterranean TBM Fleet</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                    <div>
+                        <p class="text-stone-600 mb-4">
+                            We utilize advanced, AI-guided Tunnel Boring Machines (TBMs) nicknamed "Sandworms." Unlike traditional TBMs that only bore forward, these units are equipped with <strong>Lateral Wall Mining</strong> capabilities.
+                        </p>
+                        <ul class="space-y-3 mb-6">
+                            <li class="flex items-start">
+                                <span class="bg-stone-200 rounded p-1 mr-3 text-xs">01</span>
+                                <span class="text-sm"><strong>Forward Propulsion:</strong> Creates the main artery/tunnel.</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="bg-yellow-100 rounded p-1 mr-3 text-xs text-yellow-800">02</span>
+                                <span class="text-sm"><strong>Lateral Extraction:</strong> Side-mounted drills extract valuable mineral seams identified by AI sensors without disrupting the main tunnel structure.</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="bg-blue-100 rounded p-1 mr-3 text-xs text-blue-800">03</span>
+                                <span class="text-sm"><strong>In-Situ Processing:</strong> Tailings are immediately processed into "Osteomorphic Blocks" and placed as tunnel lining.</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Visual Representation of TBM Efficiency -->
+                    <div class="bg-stone-50 rounded-xl p-6 border border-stone-200">
+                        <h4 class="text-center font-bold mb-4">TBM Resource Recovery Rate</h4>
+                        <div class="chart-container" style="height: 250px;">
+                            <canvas id="tbmChart"></canvas>
+                        </div>
+                        <p class="text-xs text-center mt-2 text-stone-500">Traditional TBM vs. Amity "Sandworm" with Lateral Tech</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-r from-stone-800 to-stone-900 rounded-2xl p-8 text-white">
+                <h3 class="text-xl font-bold mb-4">Multigenerational Resilience</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <p class="text-stone-300 text-sm leading-relaxed">
+                            This infrastructure is designed to last 500+ years. By using <strong>Geopolymer Concrete</strong> (Oyster-crete) and <strong>Sintered Stone</strong>, we avoid the "concrete cancer" of steel-reinforced structures. The city grows organically, like a coral reef, co-evolving with the AI that monitors its structural health.
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-stone-300 text-sm leading-relaxed">
+                            <strong>CO2 Cooling Loops:</strong> Instead of HFC refrigerants, we use transcritical CO2 (R744) cycles for cooling. This is non-toxic, locally available, and highly efficient for heating water (heat recovery) while cooling the living spaces.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-stone-200 mt-auto">
+        <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center">
+            <div class="mb-4 md:mb-0">
+                <p class="text-sm text-stone-500">The Amity Archives | Subterranean Development Plan</p>
+                <p class="text-xs text-stone-400 mt-1">A Thought Experiment from North Stradbroke Island</p>
+            </div>
+            <div class="flex space-x-6">
+                <span class="text-xs text-stone-400">Status: Conceptual</span>
+                <span class="text-xs text-stone-400">Version: Addendum 2.1</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // --- Navigation Logic ---
+        function nav(sectionId) {
+            // Hide all sections
+            const sections = ['manifesto', 'manufacturing', 'resources', 'infrastructure'];
+            sections.forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+                document.getElementById(id).classList.remove('block');
+                document.getElementById('btn-' + id).classList.remove('nav-active');
+            });
+
+            // Show selected section
+            document.getElementById(sectionId).classList.remove('hidden');
+            document.getElementById(sectionId).classList.add('block');
+            document.getElementById('btn-' + sectionId).classList.add('nav-active');
+            
+            // Trigger chart resizes/renders if needed
+            window.dispatchEvent(new Event('resize'));
+        }
+
+        // --- Manufacturing Logic (The Molecular Anvil) ---
+        const materialData = {
+            cookware: [
+                { id: 'alon', name: 'ALON (Transparent Ceramic)', traits: 'Induction Ready, Scratch Proof, Transparent', sustainability: 'High (Local Sand)' },
+                { id: 'castiron', name: 'Scavenged Cast Iron', traits: 'Heat Retention, Heavy, Magnetic', sustainability: 'Medium (Finite Waste)' },
+                { id: 'sic', name: 'Silicon Carbide Coating', traits: 'Non-stick, Extreme Hardness, Durable', sustainability: 'High (Local Sand)' }
+            ],
+            optics: [
+                { id: 'quartz', name: 'Fused Quartz', traits: 'UV Transparent, Thermal Shock Resistant', sustainability: 'Very High (Native)' },
+                { id: 'spinel', name: 'Magnesium Aluminate Spinel', traits: 'High Strength, Infrared Transparent', sustainability: 'High' }
+            ],
+            utensils: [
+                { id: 'silicone', name: 'Cured Silicone', traits: 'Soft-touch, Heat Resistant, Flexible', sustainability: 'High (Sand Derived)' },
+                { id: 'titanium', name: 'Sintered Titanium', traits: 'Ultralight, Antibacterial, Eternal', sustainability: 'High (Local Rutile)' },
+                { id: 'biopoly', name: 'Algae Biopolymer', traits: 'Compostable, Lightweight', sustainability: 'Renewable' }
+            ],
+            structural: [
+                { id: 'geopoly', name: 'Oyster-Crete', traits: 'Self-healing, Carbon Negative', sustainability: 'Regenerative' },
+                { id: 'steel', name: 'Recycled Steel Rebar', traits: 'High Tensile Strength, Corrosive', sustainability: 'Low (Import/Scavenge)' }
+            ]
+        };
+
+        const radarDataSets = {
+            alon: [9, 8, 4, 10, 2], // Durability, Heat, Weight (inv), Local, Toxicity (inv)
+            castiron: [8, 9, 2, 6, 8],
+            sic: [10, 9, 5, 10, 5],
+            quartz: [7, 6, 6, 10, 9],
+            spinel: [9, 7, 5, 8, 8],
+            silicone: [5, 4, 9, 10, 10],
+            titanium: [10, 5, 9, 10, 10],
+            biopoly: [3, 2, 10, 10, 10],
+            geopoly: [9, 5, 3, 10, 10],
+            steel: [8, 6, 2, 4, 5]
+        };
+
+        let currentCategory = 'cookware';
+        let currentMaterial = 'alon';
+
+        function updateFabricator() {
+            const selector = document.getElementById('item-selector');
+            currentCategory = selector.value;
+            const materials = materialData[currentCategory];
+            
+            // Update Buttons
+            const btnContainer = document.getElementById('material-buttons');
+            btnContainer.innerHTML = '';
+            
+            materials.forEach((mat, index) => {
+                const btn = document.createElement('button');
+                btn.className = `p-2 text-xs rounded border transition-colors ${index === 0 ? 'bg-stone-800 text-white border-stone-800' : 'bg-white text-stone-600 border-stone-300 hover:bg-stone-100'}`;
+                btn.innerText = mat.name;
+                btn.onclick = () => selectMaterial(mat.id, btn);
+                btnContainer.appendChild(btn);
+                
+                if (index === 0) selectMaterial(mat.id, btn); // Default select first
+            });
+        }
+
+        function selectMaterial(matId, btnElement) {
+            currentMaterial = matId;
+            
+            // Update UI styling for buttons
+            const btns = document.getElementById('material-buttons').children;
+            for(let b of btns) {
+                b.className = 'p-2 text-xs rounded border bg-white text-stone-600 border-stone-300 hover:bg-stone-100 transition-colors';
+            }
+            btnElement.className = 'p-2 text-xs rounded border bg-stone-800 text-white border-stone-800 shadow-md transition-colors';
+
+            // Find material details
+            const matDetails = materialData[currentCategory].find(m => m.id === matId);
+            
+            // Update Specs List
+            const specs = document.getElementById('specs-list');
+            specs.innerHTML = `
+                <li class="flex justify-between border-b border-stone-100 pb-1"><span>Material:</span> <span class="font-medium">${matDetails.name}</span></li>
+                <li class="flex justify-between border-b border-stone-100 pb-1"><span>Key Traits:</span> <span class="font-medium text-right">${matDetails.traits}</span></li>
+                <li class="flex justify-between border-b border-stone-100 pb-1"><span>Sovereignty Score:</span> <span class="font-medium text-green-600">${matDetails.sustainability}</span></li>
+                <li class="flex justify-between pt-1"><span>Batch Size:</span> <span class="font-medium text-blue-600">On-Demand (Qty: 1)</span></li>
+            `;
+
+            // Update Radar Chart
+            updateRadarChart(matId, matDetails.name);
+        }
+
+        function updateRadarChart(matId, matName) {
+            const data = [{
+                type: 'scatterpolar',
+                r: radarDataSets[matId],
+                theta: ['Durability', 'Thermal Perf.', 'Lightweight', 'Local Availability', 'Non-Toxicity'],
+                fill: 'toself',
+                name: matName,
+                line: { color: '#b49b57' },
+                fillcolor: 'rgba(180, 155, 87, 0.4)'
+            }, {
+                type: 'scatterpolar',
+                r: [6, 6, 6, 2, 6], // Baseline reference (Imported generic)
+                theta: ['Durability', 'Thermal Perf.', 'Lightweight', 'Local Availability', 'Non-Toxicity'],
+                fill: 'toself',
+                name: 'Legacy Import',
+                line: { color: '#94a3b8', dash: 'dot' },
+                fillcolor: 'rgba(148, 163, 184, 0.1)'
+            }];
+
+            const layout = {
+                polar: {
+                    radialaxis: { visible: true, range: [0, 10] }
+                },
+                margin: { t: 30, b: 30, l: 30, r: 30 },
+                showlegend: true,
+                legend: { orientation: 'h', y: -0.2 }
+            };
+
+            Plotly.newPlot('radarChart', data, layout, {displayModeBar: false, responsive: true});
+        }
+
+        // --- Charts Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize Fabricator
+            updateFabricator();
+
+            // 1. Kardashev Chart
+            const ctxKardashev = document.getElementById('kardashevChart').getContext('2d');
+            new Chart(ctxKardashev, {
+                type: 'line',
+                data: {
+                    labels: ['2025', '2050', '2100', '2200', '2300'],
+                    datasets: [{
+                        label: 'Civilization Type',
+                        data: [0.73, 0.78, 0.85, 0.92, 1.0],
+                        borderColor: '#06b6d4', // Cyan
+                        backgroundColor: 'rgba(6, 182, 212, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { min: 0.7, max: 1.1, grid: { color: '#333' }, ticks: { color: '#888' } },
+                        x: { grid: { display: false }, ticks: { color: '#888' } }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            // 2. Resource Chart (Doughnut)
+            const ctxResource = document.getElementById('resourceChart').getContext('2d');
+            new Chart(ctxResource, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Silica (Glass/Chips)', 'Rutile (Titanium)', 'Anthropogenic Waste', 'Biomass', 'Zircon'],
+                    datasets: [{
+                        data: [45, 20, 15, 10, 10],
+                        backgroundColor: ['#e5e5e5', '#b49b57', '#ef4444', '#22c55e', '#64748b'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right' }
+                    }
+                }
+            });
+
+            // 3. Energy Chart (Plotly Stacked Area)
+            const energyTrace1 = {
+                x: ['Phase 1', 'Phase 2', 'Phase 3', 'Phase 4'],
+                y: [80, 40, 20, 10],
+                name: 'Imported Fuels',
+                stackgroup: 'one',
+                mode: 'none',
+                fillcolor: '#ef4444' // Red
+            };
+            const energyTrace2 = {
+                x: ['Phase 1', 'Phase 2', 'Phase 3', 'Phase 4'],
+                y: [10, 30, 40, 40],
+                name: 'Wave/Tidal',
+                stackgroup: 'one',
+                mode: 'none',
+                fillcolor: '#3b82f6' // Blue
+            };
+            const energyTrace3 = {
+                x: ['Phase 1', 'Phase 2', 'Phase 3', 'Phase 4'],
+                y: [10, 30, 40, 50],
+                name: 'Solar/Thermal Battery',
+                stackgroup: 'one',
+                mode: 'none',
+                fillcolor: '#fbbf24' // Yellow
+            };
+
+            Plotly.newPlot('energyChart', [energyTrace1, energyTrace2, energyTrace3], {
+                margin: { t: 0, b: 30, l: 30, r: 10 },
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: { color: '#e5e5e5' },
+                xaxis: { showgrid: false },
+                yaxis: { showgrid: true, gridcolor: '#333' },
+                showlegend: true,
+                legend: { orientation: 'h', y: 1.1 }
+            }, {displayModeBar: false, responsive: true});
+
+            // 4. TBM Chart (Bar)
+            const ctxTBM = document.getElementById('tbmChart').getContext('2d');
+            new Chart(ctxTBM, {
+                type: 'bar',
+                data: {
+                    labels: ['Tunnel Speed', 'Material Recovery', 'Wall Stabilization', 'Energy Efficiency'],
+                    datasets: [{
+                        label: 'Standard TBM',
+                        data: [80, 10, 40, 60],
+                        backgroundColor: '#94a3b8'
+                    }, {
+                        label: 'Amity "Sandworm" (Lateral Tech)',
+                        data: [65, 95, 90, 75], // Slower speed, but massive recovery
+                        backgroundColor: '#b49b57'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, max: 100 }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
